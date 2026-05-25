@@ -1,0 +1,5 @@
+# node_modules: 라이브러리 폴더 (용량 크고 npm install로 재설치 가능)
+node_modules/
+
+# 환경변수 파일 (비밀번호 등 민감한 정보)
+.env
