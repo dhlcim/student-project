@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+
+  # ─────────────────────────────
+  # 프론트엔드 컨테이너
+  # - nginx로 HTML/JS 정적 파일 제공
+  # - 80번 포트로 브라우저 접근
+  # ─────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  # ─────────────────────────────
+  # 백엔드 컨테이너
+  # - Node.js Express REST API 서버
+  # - 3000번 포트로 API 제공
+  # ─────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: 1234
+      DB_NAME: student_db
+
+  # ─────────────────────────────
+  # DB 컨테이너
+  # - MySQL 8 사용
+  # - 볼륨 마운트로 데이터 영구 보존
+  # - 호스트 3307 → 컨테이너 3306 매핑
+  # ─────────────────────────────
+  db:
+    image: mysql:8
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: student_db
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db_data:
