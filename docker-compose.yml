@@ -18,13 +18,15 @@ services:
   # 백엔드 컨테이너
   # - Node.js Express REST API 서버
   # - 3000번 포트로 API 제공
+  # - db 헬스체크 통과 후 시작
   # ─────────────────────────────
   backend:
     build: ./backend
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_PORT: 3306
@@ -36,7 +38,7 @@ services:
   # DB 컨테이너
   # - MySQL 8 사용
   # - 볼륨 마운트로 데이터 영구 보존
-  # - 호스트 3307 → 컨테이너 3306 매핑
+  # - healthcheck: DB 준비 완료 확인 후 백엔드 시작
   # ─────────────────────────────
   db:
     image: mysql:8
@@ -48,6 +50,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   db_data:
